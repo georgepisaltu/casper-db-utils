@@ -9,14 +9,17 @@ use tar::{Archive, Builder};
 
 pub fn archive(dir: &PathBuf, tarball_path: &PathBuf) -> Result<(), IoError> {
     let temp_tarball_file = OpenOptions::new()
-        .create_new(true)
+        .create(true)
+        .truncate(true)
         .write(true)
         .open(tarball_path)?;
     let mut tarball_stream = Builder::new(temp_tarball_file);
-    for file in fs::read_dir(dir)?.flatten() {
-        info!("Added {} to the archive.", file.path().to_string_lossy());
+    for entry in fs::read_dir(dir)?.flatten() {
+        info!("Adding {} to the archive.", entry.path().to_string_lossy());
         // TODO: Try `append_file` to circumvent relative path requirement.
-        tarball_stream.append_path_with_name(file.path(), file.file_name())?;
+        let mut file = OpenOptions::new().read(true).open(entry.path())?;
+        tarball_stream.append_file(entry.file_name(), &mut file)?;
+        // tarball_stream.append_path_with_name(file.path(), file.file_name())?;
     }
     tarball_stream.finish()
 }

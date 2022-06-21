@@ -16,7 +16,7 @@ pub fn create_archive(
     dest: PathBuf,
     require_checksums: bool,
 ) -> Result<(), Error> {
-    let temp_tarball_path = dest.join("temp_casper_db.tar");
+    let temp_tarball_path = dest.join("/tmp/temp_casper_db.tar");
     info!(
         "Packing contents at {} to tarball.",
         db_path.as_os_str().to_string_lossy()
@@ -41,6 +41,7 @@ pub fn create_archive(
 
     let mut encoder = zstd_utils::zstd_encode_stream(output_file, require_checksums)?;
     let _ = std_io::copy(&mut temp_tarball_file, &mut encoder).map_err(Error::Streaming)?;
+    encoder.finish().map_err(Error::Streaming)?;
     info!(
         "Finished encoding tarball with ZSTD, compressed archive at {}",
         dest.as_os_str().to_string_lossy()
