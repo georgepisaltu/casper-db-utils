@@ -10,7 +10,8 @@ use clap::{crate_description, crate_version, Arg, Command};
 use log::error;
 
 use subcommands::{
-    archive, check, execution_results_summary, latest_block_summary, trie_compact, unsparse, Error,
+    archive, check, execution_results_summary, latest_block_summary, purge_signatures,
+    trie_compact, unsparse, Error,
 };
 
 const LOGGING: &str = "logging";
@@ -20,6 +21,7 @@ enum DisplayOrder {
     Check,
     ExecutionResults,
     LatestBlock,
+    PurgeSignatures,
     TrieCompact,
     Unsparse,
 }
@@ -36,6 +38,9 @@ fn cli() -> Command<'static> {
         ))
         .subcommand(latest_block_summary::command(
             DisplayOrder::LatestBlock as usize,
+        ))
+        .subcommand(purge_signatures::command(
+            DisplayOrder::PurgeSignatures as usize,
         ))
         .subcommand(trie_compact::command(DisplayOrder::TrieCompact as usize))
         .subcommand(unsparse::command(DisplayOrder::Unsparse as usize))
@@ -83,6 +88,7 @@ fn main() {
         latest_block_summary::COMMAND_NAME => {
             latest_block_summary::run(matches).map_err(Error::from)
         }
+        purge_signatures::COMMAND_NAME => purge_signatures::run(matches).map_err(Error::from),
         trie_compact::COMMAND_NAME => trie_compact::run(matches).map_err(Error::from),
         unsparse::COMMAND_NAME => unsparse::run(matches).map_err(Error::from),
         _ => unreachable!("{} should be handled above", subcommand_name),

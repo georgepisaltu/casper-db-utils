@@ -2,6 +2,7 @@ pub mod archive;
 pub mod check;
 pub mod execution_results_summary;
 pub mod latest_block_summary;
+pub mod purge_signatures;
 pub mod trie_compact;
 pub mod unsparse;
 
@@ -11,6 +12,7 @@ use archive::{CreateError, UnpackError};
 use check::Error as CheckError;
 use execution_results_summary::Error as ExecutionResultsSummaryError;
 use latest_block_summary::Error as LatestBlockSummaryError;
+use purge_signatures::Error as PurgeSignaturesError;
 use trie_compact::Error as TrieCompactError;
 use unsparse::Error as UnsparseError;
 
@@ -26,6 +28,8 @@ pub enum Error {
     ExecutionResultsSummary(#[from] ExecutionResultsSummaryError),
     #[error("Latest block summary command failed: {0}")]
     LatestBlockSummary(#[from] LatestBlockSummaryError),
+    #[error("Purge signatures failed: {0}")]
+    PurgeSignatures(#[from] PurgeSignaturesError),
     #[error("Trie compact failed: {0}")]
     TrieCompact(#[from] TrieCompactError),
     #[error("Unsparse failed: {0}")]
