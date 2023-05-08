@@ -1,4 +1,4 @@
-mod inner;
+mod remove;
 #[cfg(test)]
 mod tests;
 
@@ -18,21 +18,24 @@ const DB_PATH: &str = "db-path";
 /// Errors encountered when operating on the storage database.
 #[derive(Debug, ThisError)]
 pub enum Error {
-    /// Database operation error.
-    #[error("Error operating the database: {0}")]
-    Database(#[from] LmdbError),
-    /// Missing entry in the block header database.
-    #[error("Block header for block hash {0} not present in the database")]
-    MissingHeader(BlockHash),
-    /// Parsing error on entry in the block header database.
-    #[error("Error parsing block header with hash {0}: {1}")]
-    HeaderParsing(BlockHash, BincodeError),
     /// Parsing error on entry in the block body database.
     #[error("Error parsing block body for block with hash {0}: {1}")]
     BodyParsing(BlockHash, BincodeError),
+    /// Database operation error.
+    #[error("Error operating the database: {0}")]
+    Database(#[from] LmdbError),
     /// Parsing error on entry in the deploy metadata database.
     #[error("Error parsing execution results for block with hash {0} at deploy {1}: {2}")]
     ExecutionResultsParsing(BlockHash, DeployHash, BincodeError),
+    /// Parsing error on entry in the block header database.
+    #[error("Error parsing block header with hash {0}: {1}")]
+    HeaderParsing(BlockHash, BincodeError),
+    /// Missing entry in the deploy metadata database.
+    #[error("Deploy with hash {0} not present in the database")]
+    MissingDeploy(DeployHash),
+    /// Missing entry in the block header database.
+    #[error("Block header for block hash {0} not present in the database")]
+    MissingHeader(BlockHash),
     /// Serialization error on entry in the deploy metadata database.
     #[error("Error serializing execution results for deploy {0}: {1}")]
     Serialization(DeployHash, BincodeError),
@@ -81,5 +84,5 @@ pub fn run(matches: &ArgMatches) -> Result<(), Error> {
                 .into()
         })
         .expect("should have block-hash arg");
-    inner::remove_block(path, block_hash)
+    remove::remove_block(path, block_hash)
 }

@@ -56,11 +56,13 @@ pub(crate) fn remove_block<P: AsRef<Path>>(db_path: P, block_hash: BlockHash) ->
         // result of each one.
         for deploy_hash in body.deploy_hashes() {
             // Get this deploy's metadata.
-            let metadata_raw = txn.get(deploy_metadata_db, deploy_hash)?;
-            let mut metadata: DeployMetadata =
-                bincode::deserialize(metadata_raw).map_err(|bincode_err| {
+            let mut metadata: DeployMetadata = match txn.get(deploy_metadata_db, deploy_hash) {
+                Ok(raw_metadata) => bincode::deserialize(raw_metadata).map_err(|bincode_err| {
                     Error::ExecutionResultsParsing(block_hash, *deploy_hash, bincode_err)
-                })?;
+                })?,
+                Err(LmdbError::NotFound) => return Err(Error::MissingDeploy(*deploy_hash)),
+                Err(lmdb_error) => return Err(lmdb_error.into()),
+            };
             // Extract the execution result of this deploy for the current block.
             if let Some(_execution_result) = metadata.execution_results.remove(&block_hash) {
                 if metadata.execution_results.is_empty() {
